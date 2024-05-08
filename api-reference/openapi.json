@@ -1,195 +1,945 @@
 {
-  "openapi": "3.0.1",
-  "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
-  "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
-  }
+"openapi": "3.0.1",
+"info": {
+"title": "Foresight Data REST API",
+"description": "To make a call to the Foresight REST API, you need an API token. \r\n        To get an API token go to the Settings page of the Portal (portal.foresightanalytics.ca), \r\n\t    Clicking the profile icon on the Right-side nav bar and selecting 'API Tokens' and adding a new API token.\r\n        All the APIs are rate limited for 60000 requests per hour.",
+"termsOfService": "https://foresightanalytics.ca/terms-of-use",
+"contact": {
+"name": "contact-us",
+"url": "https://foresightanalytics.ca/contact-us"
+},
+"version": "v1"
+},
+"paths": {
+"/device": {
+"get": {
+"tags": [
+"device"
+],
+"summary": "returns a list of devices this api token has access to.",
+"responses": {
+"200": {
+"description": "Returns list of devices in an array of strings",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"type": "string"
+}
+}
+}
+}
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/rec": {
+"get": {
+"tags": [
+"device"
+],
+"summary": "Returns list of recIds for a device around a specified time with time for each.",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "time",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of recs up to 3min before and after the time requested, must provide time in UTC format 2023-11-23T00:00:00Z",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/Rec"
+}
+}
+}
+}
+},
+"400": {
+"description": "Time is not provided."
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/j1979": {
+"get": {
+"tags": [
+"device"
+],
+"summary": "Returns list of J1979s.",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "startTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "endTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of J1979s",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/J1979"
+}
+}
+}
+}
+},
+"400": {
+"description": "Requested time span is more than 1 hours"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/imu": {
+"get": {
+"tags": [
+"device"
+],
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "startTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "endTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of IMUs",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/Imu"
+}
+}
+}
+}
+},
+"400": {
+"description": "Requested time span is more than 1 hour"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/speed-analyzer": {
+"get": {
+"tags": [
+"device"
+],
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "startTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "endTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of SpeedAnalyzers",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/SpeedAnalyzer"
+}
+}
+}
+}
+},
+"400": {
+"description": "Requested time span is more than 1 hour"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/gps": {
+"get": {
+"tags": [
+"device"
+],
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "startTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "endTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of GPS coordinates from telemetry data",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/GPS"
+}
+}
+}
+}
+},
+"400": {
+"description": "Requested time span is more than 1 hour"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/can": {
+"get": {
+"tags": [
+"device"
+],
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "startTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "endTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of CAN from telemetry data",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/CAN"
+}
+}
+}
+}
+},
+"400": {
+"description": "Requested time span is more than 1 hour"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/rec/{recId}": {
+"get": {
+"tags": [
+"device"
+],
+"summary": "returns the rec status.",
+"description": "returns RecId along with the Status.",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "recId",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns rec status along with recId requested",
+"content": {
+"application/json": {
+"schema": {
+"$ref": "#/components/schemas/RecStatus"
+}
+}
+}
+},
+"429": {
+"description": "Rate limited"
+}
+}
+},
+"post": {
+"tags": [
+"device"
+],
+"summary": "Queue the rec and returns status.",
+"description": "This endpoint is limited to queue 10 recs per device per day due to bandwidth limitation on device side.",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "recId",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Success",
+"content": {
+"application/json": {
+"schema": {
+"$ref": "#/components/schemas/RecStatus"
+}
+}
+}
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/rec/{recId}/download": {
+"get": {
+"tags": [
+"device"
+],
+"summary": "The Endpoint will download the rec.",
+"description": "This endpoint is rate limited to 6000 requests per hour.",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "recId",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns the zip file"
+},
+"400": {
+"description": "Device or rec not found"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/device/{id}/incident": {
+"get": {
+"tags": [
+"device"
+],
+"summary": "Returns all the Recs and associated incidents.",
+"description": "The response will return all recs for the entire month of the requested time.\r\nBy default returns valid incidents. If you are interested in all incidents pass noFilter=true.",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+},
+{
+"name": "startTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "endTime",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "string",
+"format": "date-time"
+}
+},
+{
+"name": "noFilter",
+"in": "query",
+"style": "form",
+"schema": {
+"type": "boolean",
+"default": false
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns Recs and associated incidents",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/RecIncident"
+}
+}
+}
+}
+},
+"400": {
+"description": "Requested time span is more than 30 days"
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+},
+"/GholamAli/{id}": {
+"get": {
+"tags": [
+"GholamAli"
+],
+"summary": "returns a gholamAli",
+"parameters": [
+{
+"name": "id",
+"in": "path",
+"required": true,
+"style": "simple",
+"schema": {
+"type": "string"
+}
+}
+],
+"responses": {
+"200": {
+"description": "Returns list of foo in an array of strings",
+"content": {
+"application/json": {
+"schema": {
+"type": "array",
+"items": {
+"$ref": "#/components/schemas/Foo"
+}
+}
+}
+}
+},
+"429": {
+"description": "Rate limited"
+}
+}
+}
+}
+},
+"components": {
+"schemas": {
+"CAN": {
+"type": "object",
+"properties": {
+"seqId": {
+"type": "integer",
+"format": "int64"
+},
+"partitionId": {
+"type": "string",
+"nullable": true
+},
+"hawkUtcTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"recvTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"deviceId": {
+"type": "string",
+"nullable": true
+},
+"brake": {
+"type": "string",
+"nullable": true
+},
+"gas": {
+"type": "string",
+"nullable": true
+},
+"wheel": {
+"type": "string",
+"nullable": true
+},
+"speed": {
+"type": "string",
+"nullable": true
+},
+"turnSignal": {
+"type": "boolean",
+"nullable": true
+},
+"seatBelt": {
+"type": "boolean",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"Foo": {
+"type": "object",
+"properties": {
+"id": {
+"type": "integer",
+"format": "int32"
+},
+"name": {
+"type": "string",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"GPS": {
+"type": "object",
+"properties": {
+"seqId": {
+"type": "integer",
+"format": "int64"
+},
+"partitionId": {
+"type": "string",
+"nullable": true
+},
+"hawkUtcTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"recvTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"deviceId": {
+"type": "string",
+"nullable": true
+},
+"lat": {
+"type": "string",
+"nullable": true
+},
+"lon": {
+"type": "string",
+"nullable": true
+},
+"angle": {
+"type": "string",
+"nullable": true
+},
+"fix": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"speed": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"Imu": {
+"type": "object",
+"properties": {
+"orderId": {
+"type": "integer",
+"format": "int32"
+},
+"seqId": {
+"type": "integer",
+"format": "int64"
+},
+"partitionId": {
+"type": "string",
+"nullable": true
+},
+"hawkUtcTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"deviceId": {
+"type": "string",
+"nullable": true
+},
+"accelX": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"accelY": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"accelZ": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"gyroX": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"gyroY": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"gyroZ": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"J1979": {
+"type": "object",
+"properties": {
+"seqId": {
+"type": "integer",
+"format": "int64"
+},
+"partitionId": {
+"type": "string",
+"nullable": true
+},
+"hawkUtcTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"recvTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"deviceId": {
+"type": "string",
+"nullable": true
+},
+"speed": {
+"type": "string",
+"nullable": true
+},
+"distance": {
+"type": "integer",
+"format": "int64",
+"nullable": true
+},
+"odometer": {
+"type": "number",
+"format": "float",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"Rec": {
+"type": "object",
+"properties": {
+"seqId": {
+"type": "integer",
+"format": "int64"
+},
+"partitionId": {
+"type": "string",
+"nullable": true
+},
+"hawkUtcTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"recvTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"deviceId": {
+"type": "string",
+"nullable": true
+},
+"recId": {
+"type": "string",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"RecIncident": {
+"type": "object",
+"properties": {
+"recId": {
+"type": "string",
+"nullable": true
+},
+"time": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"incidents": {
+"uniqueItems": true,
+"type": "array",
+"items": {
+"type": "string"
+},
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"RecStatus": {
+"type": "object",
+"properties": {
+"status": {
+"type": "string",
+"nullable": true
+},
+"id": {
+"type": "string",
+"nullable": true
+}
+},
+"additionalProperties": false
+},
+"SpeedAnalyzer": {
+"type": "object",
+"properties": {
+"seqId": {
+"type": "integer",
+"format": "int64"
+},
+"partitionId": {
+"type": "string",
+"nullable": true
+},
+"hawkUtcTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"recvTime": {
+"type": "string",
+"format": "date-time",
+"nullable": true
+},
+"deviceId": {
+"type": "string",
+"nullable": true
+},
+"speed": {
+"type": "string",
+"nullable": true
+},
+"kind": {
+"type": "integer",
+"format": "int32",
+"nullable": true
+}
+},
+"additionalProperties": false
+}
+},
+"securitySchemes": {
+"X-API-KEY": {
+"type": "apiKey",
+"description": "ApiKey must appear in header",
+"name": "X-API-KEY",
+"in": "header"
+}
+}
+},
+"security": [
+{
+"X-API-KEY": []
+}
+]
 }
